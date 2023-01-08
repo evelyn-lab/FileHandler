@@ -13,7 +13,9 @@ public class Main {
             System.out.println("Please enter the path to the root folder : ");
             pathString = input.nextLine();
             Path rootPath = Paths.get(pathString);
-            exists = Files.exists(rootPath);
+            if (!Files.exists(rootPath) || !Files.isDirectory(rootPath)) {
+                exists = false;
+            }
         }
         FileProcessing fileProcessing = new FileProcessing(pathString);
         fileProcessing.filesRecursion(new File(pathString));
