@@ -1,20 +1,21 @@
 import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FileProcessing {
-    public HashMap<String, ArrayList<String>> dependencies;
-    public String rootFolderPath;
+    private final HashMap<String, ArrayList<String>> dependencies;
+    private final String rootFolderPath;
     private File currentDirectory;
+    private final LinkedList<String> fileList;
     FileProcessing(String pathString) {
         dependencies = new HashMap<>();
         rootFolderPath = pathString;
         currentDirectory = new File("");
+        fileList = new LinkedList<>();
     }
     public void readFile(File file) {
         try {
@@ -44,7 +45,9 @@ public class FileProcessing {
                 }
                 line = reader.readLine();
             }
-        } catch (IOException e) {}
+        } catch (IOException e) {
+            System.out.println("Invalid file path");
+        }
     }
     public void filesRecursion(File rootFolder) {
         File[] folderEntries = rootFolder.listFiles();
@@ -60,11 +63,6 @@ public class FileProcessing {
             }
         } else {
             System.out.println("Root folder is empty");
-        }
-    }
-    public void printDependencies() {
-        for (HashMap.Entry<String, ArrayList<String>> entry: dependencies.entrySet()) {
-            System.out.println(entry);
         }
     }
     public boolean hasLoop(String currentFile, String fileName) {
@@ -91,6 +89,61 @@ public class FileProcessing {
                     }
                 }
             }
+        }
+    }
+    public void addParents(String fileName) {
+        for (String key : dependencies.get(fileName)) {
+            if (!dependencies.get(key).isEmpty()) {
+                addParents(key);
+            }
+        }
+        if (!fileList.contains(fileName)) {
+            fileList.addFirst(fileName);
+        }
+    }
+    public void makeFileList() {
+        for (String key : dependencies.keySet()) {
+            if (!dependencies.get(key).isEmpty()) {
+                addParents(key);
+            } else {
+                if (!fileList.contains(key)) {
+                    fileList.add(key);
+                }
+            }
+        }
+    }
+    public void printFileList() {
+        makeFileList();
+        List<String> copy = fileList.subList(0, fileList.size());
+        Collections.reverse(copy);
+        for (String file : copy) {
+            System.out.println(file);
+        }
+    }
+    public void fileConcatenation(String fileToWritePath) {
+        try {
+            Path path = Path.of(rootFolderPath, fileToWritePath + ".txt");
+            File fileToWrite = new File(path.toString());
+            PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(fileToWrite, true)));
+            for (String fileName : fileList) {
+                path = Path.of(rootFolderPath, fileName);
+                File file = new File(path.toString());
+                try {
+                    FileReader fr = new FileReader(file);
+                    BufferedReader reader = new BufferedReader(fr);
+                    String line = reader.readLine();
+                    while (line != null) {
+                        writer.println(line);
+                        line = reader.readLine();
+                    }
+                } catch (IOException e) {
+                    System.out.println("Couldn't take info from file");
+                }
+            }
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Invalid file name");
         }
     }
 }
