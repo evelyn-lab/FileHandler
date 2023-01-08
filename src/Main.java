@@ -5,6 +5,10 @@ import java.nio.file.Paths;
 import java.util.Scanner;
 
 public class Main {
+    /**
+     * В Main реализовано консольное меню, чтение данных из консоли
+     * @param args ---
+     */
     public static void main(String[] args) {
         boolean exists = false;
         String pathString = "";
@@ -13,9 +17,7 @@ public class Main {
             System.out.println("Please enter the path to the root folder : ");
             pathString = input.nextLine();
             Path rootPath = Paths.get(pathString);
-            if (!Files.exists(rootPath) || !Files.isDirectory(rootPath)) {
-                exists = false;
-            }
+            exists = Files.exists(rootPath) && Files.isDirectory(rootPath);
         }
         FileProcessing fileProcessing = new FileProcessing(pathString);
         fileProcessing.filesRecursion(new File(pathString));
